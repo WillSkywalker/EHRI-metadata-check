@@ -1,9 +1,19 @@
+[build-system]
+build-backend = "uv_build"
+requires = ["uv_build>=0.9,<0.10.0"]
+
+[tool.pyrefly]
+project-includes = ["**/*.py*", "**/*.ipynb"]
+
 [project]
 name = "ehri-metadata-check"
 version = "0.1.0"
-description = "Add your description here"
+description = "A tool for validating whether an EHRI website has correct metadata."
 readme = "README.md"
-requires-python = ">=3.14"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+authors = [{ name = "Xu Xiao", email = "xiao.xu@niod.knaw.nl" }]
 dependencies = [
     "beautifulsoup4>=4.14.3",
     "extruct>=0.18.0",
@@ -14,4 +24,14 @@ dependencies = [
     "streamlit>=1.53.1",
     "typer>=0.21.1",
     "watchdog>=6.0.0",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
 ]
