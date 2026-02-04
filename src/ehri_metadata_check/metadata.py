@@ -61,7 +61,7 @@ def validate_meta_tags(soup: BeautifulSoup) -> List[Dict[str, Any]]:
 
 def validate_opengraph(soup: BeautifulSoup) -> Dict[str, Any]:
     og_tags = soup.find_all(
-        "meta", attrs={"property": lambda x: x and x.startswith("og:")}
+        "meta", attrs={"property": lambda x: isinstance(x, str) and x.startswith("og:")}
     )
     found_props = {tag.get("property"): tag.get("content") for tag in og_tags}
 

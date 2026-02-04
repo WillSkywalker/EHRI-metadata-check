@@ -24,7 +24,7 @@ def validate(
         console.print(f"[bold blue]{'=' * 60}[/bold blue]")
 
         try:
-            from checks.metadata import get_metadata_results
+            from ehri_metadata_check.metadata import get_metadata_results
 
             data = get_metadata_results(url)
             if "error" in data:
@@ -64,7 +64,7 @@ def validate(
             else:
                 console.print("  [yellow]No JSON-LD found.[/yellow]")
 
-            from checks.html_validity import check_html_validity
+            from ehri_metadata_check.html_validity import check_html_validity
 
             # Simple re-fetch for now to decouple checks
             response = requests.get(url, timeout=10)
@@ -78,7 +78,7 @@ def validate(
                         f"  Errors: {val_result.get('error_count', 0)}, Warnings: {val_result.get('warning_count', 0)}"
                     )
 
-            from checks.accessibility import run_accessibility_checks
+            from ehri_metadata_check.accessibility import run_accessibility_checks
 
             run_accessibility_checks(response.text)
         except Exception as e:

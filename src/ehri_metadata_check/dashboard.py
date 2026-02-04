@@ -1,9 +1,9 @@
 import streamlit as st
-from checks.metadata import get_metadata_results
-from checks.html_validity import check_html_validity
-from checks.accessibility import check_accessibility
+from ehri_metadata_check.metadata import get_metadata_results
+from ehri_metadata_check.html_validity import check_html_validity
+from ehri_metadata_check.accessibility import check_accessibility
 
-st.set_page_config(page_title="EHRI Metadata Validator", page_icon="🔍", layout="wide")
+st.set_page_config(page_title="EHRI Metadata Validator", layout="wide")
 
 # Initialize session state
 if "validated_urls" not in st.session_state:
@@ -89,7 +89,11 @@ if validate_btn and new_url:
                         "status": "ERROR",
                         "message": "Could not fetch content for validation",
                     }
-                    results["accessibility"] = []
+                    results["accessibility"] = {
+                        "status": "ERROR",
+                        "issues": [],
+                        "message": "Could not fetch content for validation",
+                    }
 
                 st.session_state.validated_urls[new_url] = results
                 st.session_state.selected_url = new_url  # Auto-select new result
@@ -174,9 +178,13 @@ if st.session_state.selected_url:
                 st.json(res["messages"])
 
     with tab3:
-        issues = data.get("accessibility", [])
-        if not issues:
+        acc_data = data.get("accessibility", {})
+        issues = acc_data.get("issues", [])
+
+        if acc_data.get("status") == "PASS":
             st.success("No basic accessibility issues found (Alt tags, buttons).")
+        elif acc_data.get("status") == "ERROR":
+            st.warning(acc_data.get("message", "Unknown error"))
         else:
             st.error(f"Found {len(issues)} potential issues.")
             for issue in issues:

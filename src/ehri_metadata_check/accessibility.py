@@ -1,11 +1,11 @@
 from bs4 import BeautifulSoup
 from rich.console import Console
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 console = Console()
 
 
-def check_accessibility(html_content: str) -> List[Dict[str, Any]]:
+def check_accessibility(html_content: str) -> Dict[str, Any]:
     """
     Performs basic static accessibility checks.
     Currently checks:
@@ -17,10 +17,8 @@ def check_accessibility(html_content: str) -> List[Dict[str, Any]]:
 
     # Check images
     images = soup.find_all("img")
-    img_issues = 0
     for img in images:
         if not img.has_attr("alt"):
-            img_issues += 1
             issues.append(
                 {
                     "type": "image_alt_missing",
@@ -28,20 +26,24 @@ def check_accessibility(html_content: str) -> List[Dict[str, Any]]:
                     "message": "Image missing alt attribute",
                 }
             )
-        elif not (img.get("alt") or "").strip():
-            # Empty alt is fine for decorative images usually, but worth noting if not marked role="presentation"
-            pass
+        else:
+            alt_val = img.get("alt")
+            # In some BS4 configurations/versions, attributes can be lists
+            if isinstance(alt_val, list):
+                alt_val = " ".join(alt_val)
+
+            if not (alt_val or "").strip():
+                # Empty alt is fine for decorative images usually
+                pass
 
     # Check buttons
     buttons = soup.find_all("button")
-    btn_issues = 0
     for btn in buttons:
         text = btn.get_text(strip=True)
         aria_label = btn.get("aria-label")
         aria_labelledby = btn.get("aria-labelledby")
 
         if not text and not aria_label and not aria_labelledby:
-            btn_issues += 1
             issues.append(
                 {
                     "type": "empty_button",
@@ -50,11 +52,16 @@ def check_accessibility(html_content: str) -> List[Dict[str, Any]]:
                 }
             )
 
-    return issues
+    return {
+        "status": "PASS" if not issues else "FAIL",
+        "issues": issues,
+        "message": f"Found {len(issues)} issues" if issues else "No issues found",
+    }
 
 
 def run_accessibility_checks(html_content: str):
-    issues = check_accessibility(html_content)
+    result = check_accessibility(html_content)
+    issues = result["issues"]
     console.print("\n[bold]Accessibility Checks (Basic):[/bold]")
     if not issues:
         console.print("  [green]No basic issues found (Images/Buttons).[/green]")

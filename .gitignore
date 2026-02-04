@@ -1,3 +1,12 @@
+# macOS
+.DS_Store
+
+# VSCode
+.vscode/
+
+# Streamlit
+.streamlit/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
