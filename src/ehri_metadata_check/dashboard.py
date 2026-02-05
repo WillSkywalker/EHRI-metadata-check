@@ -5,11 +5,12 @@ A Streamlit dashboard to validate website metadata, HTML5 compliance, accessibil
 """
 
 import streamlit as st
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 from dataclasses import dataclass
 import threading
 import time
 import asyncio
+from urllib.parse import urlparse
 
 from ehri_metadata_check.validation import validate_urls
 
@@ -164,9 +165,45 @@ class AppState:
         return st.session_state.url_list
 
     @staticmethod
-    def add_url(url: str):
-        if url and url not in st.session_state.url_list:
-            st.session_state.url_list.append(url)
+    def is_valid_url(url: str) -> Tuple[bool, str]:
+        """Validate if a URL is properly formatted with http/https scheme.
+
+        Returns:
+            Tuple of (is_valid, error_message)
+        """
+        if not url:
+            return False, "URL cannot be empty"
+
+        url = url.strip()
+
+        try:
+            parsed = urlparse(url)
+            if parsed.scheme not in ("http", "https"):
+                return False, "URL must start with http:// or https://"
+            if not parsed.netloc:
+                return False, "URL must have a valid domain"
+            return True, ""
+        except Exception:
+            return False, "Invalid URL format"
+
+    @staticmethod
+    def add_url(url: str) -> Tuple[bool, str]:
+        """Add a URL to the list after validation.
+
+        Returns:
+            Tuple of (success, error_message)
+        """
+        url = url.strip() if url else ""
+
+        is_valid, error_msg = AppState.is_valid_url(url)
+        if not is_valid:
+            return False, error_msg
+
+        if url in st.session_state.url_list:
+            return False, "URL already in list"
+
+        st.session_state.url_list.append(url)
+        return True, ""
 
     @staticmethod
     def remove_url(url: str):
@@ -214,8 +251,11 @@ class SidebarUI:
 
         if st.button("➕ Add URL", use_container_width=True, disabled=is_validating):
             if new_url:
-                AppState.add_url(new_url)
-                st.rerun()
+                success, error_msg = AppState.add_url(new_url)
+                if success:
+                    st.rerun()
+                else:
+                    st.error(error_msg)
 
     @staticmethod
     def _render_url_list():
@@ -389,9 +429,45 @@ class ResultsUI:
         else:
             st.warning("Could not check validity.")
 
-        if "messages" in res:
-            with st.expander("See full W3C Validator messages"):
-                st.json(res["messages"])
+        messages = res.get("messages", [])
+        if messages:
+            # Separate errors and warnings
+            errors = [m for m in messages if m.get("type") == "error"]
+            warnings = [m for m in messages if m.get("type") in ("info", "warning")]
+
+            if errors:
+                with st.expander(f"Errors ({len(errors)})", expanded=True):
+                    ResultsUI._render_w3c_messages(errors, "error")
+
+            if warnings:
+                with st.expander(f"Warnings ({len(warnings)})"):
+                    ResultsUI._render_w3c_messages(warnings, "warning")
+
+    @staticmethod
+    def _render_w3c_messages(messages: List[Dict], severity: str):
+        """Render a list of W3C validator messages."""
+        for msg in messages:
+            line = msg.get("lastLine", msg.get("firstLine", "?"))
+            col = msg.get("lastColumn", msg.get("firstColumn", "?"))
+            message_text = msg.get("message", "Unknown issue")
+            extract = msg.get("extract", "")
+
+            # Location info
+            location = f"Line {line}"
+            if col != "?":
+                location += f", Column {col}"
+
+            # Build the display
+            if severity == "error":
+                st.markdown(f"**{location}**: {message_text}")
+            else:
+                st.markdown(f"**{location}**: {message_text}")
+
+            # Show code extract if available
+            if extract:
+                st.code(extract.strip(), language="html")
+
+            st.divider()
 
     @staticmethod
     def _render_accessibility_tab(data: Dict):
