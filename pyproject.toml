@@ -12,6 +12,7 @@ license-files = ["LICENSE"]
 requires-python = ">=3.12"
 authors = [{ name = "Xu Xiao", email = "xiao.xu@niod.knaw.nl" }]
 dependencies = [
+    "aiohttp>=3.11.0",
     "beautifulsoup4>=4.14.3",
     "extruct>=0.18.0",
     "lxml>=6.0.2",
