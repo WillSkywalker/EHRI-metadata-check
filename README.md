@@ -1,6 +1,8 @@
 # EHRI Metadata Check
 
 [![Test Matrix](https://github.com/WillSkywalker/EHRI-metadata-check/actions/workflows/test.yaml/badge.svg)](https://github.com/WillSkywalker/EHRI-metadata-check/actions/workflows/test.yaml)
+
+
 A tool for validating whether EHRI websites have correct metadata, accessibility compliance, and OpenGraph information.
 
 ## Installation
