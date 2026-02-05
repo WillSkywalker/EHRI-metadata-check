@@ -192,7 +192,9 @@ class SidebarUI:
         """Render the sidebar."""
         with st.sidebar:
             st.header("EHRI Validator")
-            st.markdown("Validate metadata, HTML5 compliance, and basic accessibility.")
+            st.markdown(
+                "Validate website metadata, HTML5 compliance, accessibility, and preview social media cards for EHRI websites."
+            )
 
             st.divider()
             SidebarUI._render_url_list()
