@@ -278,10 +278,16 @@ class SidebarUI:
 
             col_icon, col_url, col_del = st.columns([0.5, 5, 0.8])
             with col_icon:
-                st.markdown(
-                    f"<div style='padding-top: 8px; font-size: 1.2em;'>{icon}</div>",
-                    unsafe_allow_html=True,
-                )
+                # Show play button for pending URLs (not validated yet)
+                if results is None and not is_running:
+                    if st.button("▶", key=f"play_{url}", help="Validate this URL"):
+                        ValidationWorker.start_validation([url])
+                        st.rerun()
+                else:
+                    st.markdown(
+                        f"<div style='padding-top: 8px; padding-right: 8px; font-size: 1.2em;'>{icon}</div>",
+                        unsafe_allow_html=True,
+                    )
             with col_url:
                 if st.button(display_url, key=f"url_{url}", use_container_width=True):
                     AppState.set_selected_url(url)
